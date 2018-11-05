@@ -13,6 +13,8 @@ class AccountManager:
         self.accounts = set()
         self.sessions = set()
         self.cookies_files = set()
+        self.prepared = False
+
     def read_account_file(self):
         with open("accounts") as f:
             lines = f.readlines()
@@ -33,22 +35,25 @@ class AccountManager:
         self.read_account_file()
         if len(self.cookies_files) > 0:
             for c in self.cookies_files:
-                one = LoginOne(cookie=c)
+                one = LoginOne(cookie=c).login()
                 if one is not None:
                     self.sessions.add(one)
             for i in self.sessions:
                 print(i.headers)
+            self.prepared = True
             return
         for account in self.accounts:
             one = LoginOne(account[0],account[1]).login()
             if one is not None:
                 self.sessions.add(one)
                 one.cookies.save()
-
+        self.prepared =True
 
     def get_session(self):
+        if not self.prepared:
+            self.prepare()
         if len(self.sessions) > 0:
-            return self.accounts.pop()
+            return self.sessions.pop()
         else:
             return  None
 
